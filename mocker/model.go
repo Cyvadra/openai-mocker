@@ -1,4 +1,4 @@
-package main
+package mocker
 
 type ChatRequestMessage struct {
 	Role    string `json:"role"`

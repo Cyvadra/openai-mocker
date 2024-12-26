@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Cyvadra/openai-mocker/mocker"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +18,7 @@ var stopReason string
 var port int
 
 func init() {
-	flag.IntVar(&port, "port", 3000, "Port to run the server on")
+	flag.IntVar(&port, "port", 3001, "Port to run the server on")
 	flag.Parse()
 }
 
@@ -27,9 +28,9 @@ func main() {
 	}
 	stopReason = "stop"
 	server := gin.Default()
-	server.Use(CORS())
+	server.Use(mocker.CORS())
 	server.POST("/v1/chat/completions", func(c *gin.Context) {
-		var chatRequest ChatRequest
+		var chatRequest mocker.ChatRequest
 		if err := c.ShouldBindJSON(&chatRequest); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -38,26 +39,26 @@ func main() {
 		if len(chatRequest.Messages) != 0 {
 			prompt = chatRequest.Messages[len(chatRequest.Messages)-1].Content
 		}
-		response := prompt2response(prompt)
+		response := mocker.Prompt2response(prompt)
 
 		if chatRequest.Stream {
-			setEventStreamHeaders(c)
+			mocker.SetEventStreamHeaders(c)
 			dataChan := make(chan string)
 			stopChan := make(chan bool)
-			streamResponse := ChatCompletionsStreamResponse{
+			streamResponse := mocker.ChatCompletionsStreamResponse{
 				Id:      "chatcmpl-openai_mocker",
 				Object:  "chat.completion.chunk",
 				Created: time.Now().Unix(),
 				Model:   "gpt-3.5-turbo",
 			}
-			streamResponseChoice := ChatCompletionsStreamResponseChoice{}
+			streamResponseChoice := mocker.ChatCompletionsStreamResponseChoice{}
 			go func() {
 				for i, s := range response {
 					streamResponseChoice.Delta.Content = string(s)
 					if i == len(response)-1 {
 						streamResponseChoice.FinishReason = &stopReason
 					}
-					streamResponse.Choices = []ChatCompletionsStreamResponseChoice{streamResponseChoice}
+					streamResponse.Choices = []mocker.ChatCompletionsStreamResponseChoice{streamResponseChoice}
 					jsonStr, _ := json.Marshal(streamResponse)
 					dataChan <- string(jsonStr)
 				}
@@ -67,30 +68,30 @@ func main() {
 			c.Stream(func(w io.Writer) bool {
 				select {
 				case data := <-dataChan:
-					c.Render(-1, CustomEvent{Data: "data: " + data})
+					c.Render(-1, mocker.CustomEvent{Data: "data: " + data})
 					return true
 				case <-stopChan:
-					c.Render(-1, CustomEvent{Data: "data: [DONE]"})
+					c.Render(-1, mocker.CustomEvent{Data: "data: [DONE]"})
 					return false
 				}
 			})
 		} else {
-			c.JSON(http.StatusOK, Completion{
+			c.JSON(http.StatusOK, mocker.Completion{
 				Id:      "chatcmpl-7f8Qxn9XkoGsVcl0RVGltZpPeqMAG",
 				Object:  "chat.completion",
 				Created: time.Now().Unix(),
 				Model:   "gpt-3.5-turbo",
-				Choices: []Choice{
+				Choices: []mocker.Choice{
 					{
 						Index: 0,
-						Message: Message{
+						Message: mocker.Message{
 							Role:    "assistant",
 							Content: prompt,
 						},
 						FinishReason: "length",
 					},
 				},
-				Usage: Usage{
+				Usage: mocker.Usage{
 					PromptTokens:     9,
 					CompletionTokens: 1,
 					TotalTokens:      10,

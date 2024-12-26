@@ -1,4 +1,4 @@
-package main
+package mocker
 
 import (
 	"github.com/gin-contrib/cors"

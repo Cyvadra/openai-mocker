@@ -1,4 +1,4 @@
-module openai-mocker
+module github.com/Cyvadra/openai-mocker
 
 go 1.19
 

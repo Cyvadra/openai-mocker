@@ -1,8 +1,8 @@
-package main
+package mocker
 
 import "github.com/gin-gonic/gin"
 
-func setEventStreamHeaders(c *gin.Context) {
+func SetEventStreamHeaders(c *gin.Context) {
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
 	c.Writer.Header().Set("Connection", "keep-alive")

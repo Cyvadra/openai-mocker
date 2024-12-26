@@ -1,4 +1,4 @@
-package main
+package mocker
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func prompt2response(subject string) string {
+func Prompt2response(subject string) string {
 	rand.Seed(time.Now().UnixNano())
 
 	forwards := []string{
