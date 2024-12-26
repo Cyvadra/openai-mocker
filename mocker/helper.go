@@ -1,14 +1,11 @@
 package mocker
 
 import (
-	"fmt"
 	"math/rand"
 	"strings"
-	"time"
 )
 
 func Prompt2response(subject string) string {
-	rand.Seed(time.Now().UnixNano())
 
 	forwards := []string{
 		"这个问题怎么又被顶上热搜了？？？\n以下为正文\n\n",
@@ -152,7 +149,7 @@ func Prompt2response(subject string) string {
 	content += randomChoose(requestReaders)
 	content += randomChoose(ends)
 
-	content += fmt.Sprintf("\n\n * 注意：以上回复仅供娱乐，由 https://github.com/songquanpeng/openai-mocker 生成*")
+	content += "\n\n * 注意：以上回复仅供娱乐，由 https://github.com/songquanpeng/openai-mocker 生成*"
 	return content
 }
 

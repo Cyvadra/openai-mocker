@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"io"
 	"log"
 	"net/http"
@@ -14,19 +13,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var stopReason string
-var port int
-
-func init() {
-	flag.IntVar(&port, "port", 3001, "Port to run the server on")
-	flag.Parse()
-}
+var port int = 3001
 
 func main() {
 	if os.Getenv("GIN_MODE") != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	stopReason = "stop"
+	stopReason := "stop"
 	server := gin.Default()
 	server.Use(mocker.CORS())
 	server.POST("/v1/chat/completions", func(c *gin.Context) {
