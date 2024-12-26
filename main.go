@@ -33,9 +33,8 @@ func main() {
 			return
 		}
 
-		lastMessage := chatRequest.Messages[len(chatRequest.Messages)-1].Content
 		// generate response
-		response := mocker.Prompt2response(lastMessage)
+		response := mocker.GenerateResponse(chatRequest.Messages)
 
 		if chatRequest.Stream {
 			mocker.SetEventStreamHeaders(c)

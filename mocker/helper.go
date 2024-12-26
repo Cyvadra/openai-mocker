@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+func GenerateResponse(messages []ChatRequestMessage) (replyStr string) {
+	replyStr = messages[len(messages)-1].Content
+	return
+}
+
 func Prompt2response(subject string) string {
 
 	forwards := []string{
