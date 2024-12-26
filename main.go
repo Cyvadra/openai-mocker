@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 var stopReason string
@@ -44,9 +45,9 @@ func main() {
 			dataChan := make(chan string)
 			stopChan := make(chan bool)
 			streamResponse := ChatCompletionsStreamResponse{
-				Id:      "chatcmpl-iwillalwaysloveyou",
+				Id:      "chatcmpl-openai_mocker",
 				Object:  "chat.completion.chunk",
-				Created: 1689411338,
+				Created: time.Now().Unix(),
 				Model:   "gpt-3.5-turbo",
 			}
 			streamResponseChoice := ChatCompletionsStreamResponseChoice{}
