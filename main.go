@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Cyvadra/openai-mocker/mocker"
+	"github.com/Cyvadra/openai-mocker/sample"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +21,10 @@ const responseObject string = "chat.completion.chunk"
 var responseCompletionId string = "chatcmpl-7f8Qxn9XkoGsVcl0RVGltZpPeqMAG"
 
 func main() {
+	RunAgent(sample.Reply, port)
+}
+
+func RunAgent(customHandler mocker.Handler, port int) {
 	if os.Getenv("GIN_MODE") != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -34,7 +39,7 @@ func main() {
 		}
 
 		// generate response
-		response := mocker.GenerateResponse(chatRequest.Messages)
+		response := customHandler(chatRequest.Messages)
 
 		if chatRequest.Stream {
 			mocker.SetEventStreamHeaders(c)

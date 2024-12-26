@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+type Handler func(messages []ChatRequestMessage) string
+
 func GenerateResponse(messages []ChatRequestMessage) (replyStr string) {
 	replyStr = messages[len(messages)-1].Content
 	return
