@@ -13,7 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var port int = 3001
+const port int = 3001
+const responseId string = "chatcmpl-openai_mocker"
+const responseObject string = "chat.completion.chunk"
+
+var responseCompletionId string = "chatcmpl-7f8Qxn9XkoGsVcl0RVGltZpPeqMAG"
 
 func main() {
 	if os.Getenv("GIN_MODE") != "debug" {
@@ -28,21 +32,20 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		prompt := "This is a mock server."
-		if len(chatRequest.Messages) != 0 {
-			prompt = chatRequest.Messages[len(chatRequest.Messages)-1].Content
-		}
-		response := mocker.Prompt2response(prompt)
+
+		lastMessage := chatRequest.Messages[len(chatRequest.Messages)-1].Content
+		// generate response
+		response := mocker.Prompt2response(lastMessage)
 
 		if chatRequest.Stream {
 			mocker.SetEventStreamHeaders(c)
 			dataChan := make(chan string)
 			stopChan := make(chan bool)
 			streamResponse := mocker.ChatCompletionsStreamResponse{
-				Id:      "chatcmpl-openai_mocker",
-				Object:  "chat.completion.chunk",
+				Id:      responseId,
+				Object:  responseObject,
 				Created: time.Now().Unix(),
-				Model:   "gpt-3.5-turbo",
+				Model:   chatRequest.Model,
 			}
 			streamResponseChoice := mocker.ChatCompletionsStreamResponseChoice{}
 			go func() {
@@ -70,24 +73,24 @@ func main() {
 			})
 		} else {
 			c.JSON(http.StatusOK, mocker.Completion{
-				Id:      "chatcmpl-7f8Qxn9XkoGsVcl0RVGltZpPeqMAG",
+				Id:      responseCompletionId,
 				Object:  "chat.completion",
 				Created: time.Now().Unix(),
-				Model:   "gpt-3.5-turbo",
+				Model:   chatRequest.Model,
 				Choices: []mocker.Choice{
 					{
 						Index: 0,
 						Message: mocker.Message{
 							Role:    "assistant",
-							Content: prompt,
+							Content: "Non-stream reply not implemented!",
 						},
 						FinishReason: "length",
 					},
 				},
 				Usage: mocker.Usage{
-					PromptTokens:     9,
-					CompletionTokens: 1,
-					TotalTokens:      10,
+					PromptTokens:     0,
+					CompletionTokens: 0,
+					TotalTokens:      0,
 				},
 			})
 		}
