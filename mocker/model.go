@@ -5,6 +5,25 @@ type ChatRequestMessage struct {
 	Content string `json:"content"`
 }
 
+func NewSystemPrompt(prompt string) ChatRequestMessage {
+	return ChatRequestMessage{
+		Role:    "system",
+		Content: prompt,
+	}
+}
+func NewUserMessage(msg string) ChatRequestMessage {
+	return ChatRequestMessage{
+		Role:    "user",
+		Content: msg,
+	}
+}
+func NewAssistantMessage(msg string) ChatRequestMessage {
+	return ChatRequestMessage{
+		Role:    "assistant",
+		Content: msg,
+	}
+}
+
 type ChatRequest struct {
 	Stream   bool                 `json:"stream"`
 	Model    string               `json:"model"`

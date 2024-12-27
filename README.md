@@ -3,16 +3,18 @@
 
 ## 使用方法
 ```golang
-
 package main
 
 import (
 	"github.com/Cyvadra/openai-mocker/mocker"
 )
 
+func SampleReply(messages []mocker.ChatRequestMessage) string {
+	return "meow"
+}
+
 func main() {
-  // change handler to your own function
-	mocker.RunAgent(mocker.SampleReply, 3001)
+	mocker.RunAgent(SampleReply, 3001)
 }
 
 ```

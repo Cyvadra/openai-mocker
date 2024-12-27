@@ -12,10 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SampleReply(messages []ChatRequestMessage) string {
-	return messages[len(messages)-1].Content
-}
-
 const responseId string = "chatcmpl-openai_mocker"
 const responseObject string = "chat.completion.chunk"
 
