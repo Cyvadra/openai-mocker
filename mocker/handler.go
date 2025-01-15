@@ -17,14 +17,14 @@ const responseObject string = "chat.completion.chunk"
 
 var responseCompletionId string = "chatcmpl-7f8Qxn9XkoGsVcl0RVGltZpPeqMAG"
 
-func RunAgent(customHandler Handler, port int) {
+func RunAgentOnPath(customHandler Handler, port int, path string) {
 	if os.Getenv("GIN_MODE") != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	stopReason := "stop"
 	server := gin.Default()
 	server.Use(CORS())
-	server.POST("/v1/chat/completions", func(c *gin.Context) {
+	server.POST(path, func(c *gin.Context) {
 		var chatRequest ChatRequest
 		if err := c.ShouldBindJSON(&chatRequest); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -95,4 +95,8 @@ func RunAgent(customHandler Handler, port int) {
 
 	log.Printf("Starting server on port %d", port)
 	log.Fatal(server.Run(":" + strconv.Itoa(port)))
+}
+
+func RunAgent(customHandler Handler, port int) {
+	RunAgentOnPath(customHandler, port, "/v1/chat/completions")
 }
