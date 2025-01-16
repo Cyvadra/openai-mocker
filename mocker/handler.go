@@ -71,13 +71,13 @@ func RunStreamAgentOnPath(customHandler StreamHandler, port int, path string) {
 							Role:    "assistant",
 							Content: response,
 						},
-						FinishReason: "length",
+						FinishReason: "stop",
 					},
 				},
 				Usage: Usage{
-					PromptTokens:     0,
-					CompletionTokens: 0,
-					TotalTokens:      0,
+					PromptTokens:     1,
+					CompletionTokens: len(response),
+					TotalTokens:      1 + len(response),
 				},
 			})
 		}
