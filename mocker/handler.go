@@ -17,7 +17,7 @@ const responseObject string = "chat.completion.chunk"
 
 var responseCompletionId string = "chatcmpl-7f8Qxn9XkoGsVcl0RVGltZpPeqMAG"
 
-func RunAgentOnPath(customHandler Handler, port int, path string) {
+func RunStreamAgentOnPath(customHandler StreamHandler, port int, path string) {
 	if os.Getenv("GIN_MODE") != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -30,13 +30,8 @@ func RunAgentOnPath(customHandler Handler, port int, path string) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		// generate response
-		response := customHandler(chatRequest.Messages)
-		// process response
 		if chatRequest.Stream {
 			SetEventStreamHeaders(c)
-			dataChan := make(chan string)
-			stopChan := make(chan bool)
 			streamResponse := ChatCompletionsStreamResponse{
 				Id:      responseId,
 				Object:  responseObject,
@@ -44,29 +39,26 @@ func RunAgentOnPath(customHandler Handler, port int, path string) {
 				Model:   chatRequest.Model,
 			}
 			streamResponseChoice := ChatCompletionsStreamResponseChoice{}
-			go func() {
-				for i, s := range response {
+			c.Stream(func(w io.Writer) bool {
+				dataChan, stopChain := customHandler(chatRequest.Messages)
+				if dataChan == nil {
+					return false
+				}
+				select {
+				case s := <-dataChan:
 					streamResponseChoice.Delta.Content = string(s)
-					if i == len(response)-1 {
-						streamResponseChoice.FinishReason = &stopReason
-					}
 					streamResponse.Choices = []ChatCompletionsStreamResponseChoice{streamResponseChoice}
 					jsonStr, _ := json.Marshal(streamResponse)
-					dataChan <- string(jsonStr)
-				}
-				stopChan <- true
-			}()
-			c.Stream(func(w io.Writer) bool {
-				select {
-				case data := <-dataChan:
-					c.Render(-1, CustomEvent{Data: "data: " + data})
+					c.Render(-1, CustomEvent{Data: "data: " + string(jsonStr)})
 					return true
-				case <-stopChan:
+				case <-stopChain:
+					streamResponseChoice.FinishReason = &stopReason
 					c.Render(-1, CustomEvent{Data: "data: [DONE]"})
 					return false
 				}
 			})
 		} else {
+			response := Stream2String(customHandler(chatRequest.Messages))
 			c.JSON(http.StatusOK, Completion{
 				Id:      responseCompletionId,
 				Object:  "chat.completion",
@@ -94,6 +86,16 @@ func RunAgentOnPath(customHandler Handler, port int, path string) {
 	log.Fatal(server.Run(":" + strconv.Itoa(port)))
 }
 
+func RunAgentOnPath(customHandler Handler, port int, path string) {
+	RunStreamAgentOnPath(func(messages []ChatRequestMessage) (dataChan chan string, stopChan chan bool) {
+		return String2Stream(customHandler(messages))
+	}, port, path)
+}
+
 func RunAgent(customHandler Handler, port int) {
 	RunAgentOnPath(customHandler, port, "/v1/chat/completions")
+}
+
+func RunStreamAgent(customHandler StreamHandler, port int) {
+	RunStreamAgentOnPath(customHandler, port, "/v1/chat/completions")
 }

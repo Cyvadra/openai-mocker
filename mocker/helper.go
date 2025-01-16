@@ -6,6 +6,29 @@ import (
 )
 
 type Handler func(messages []ChatRequestMessage) string
+type StreamHandler func(messages []ChatRequestMessage) (dataChan chan string, stopChan chan bool)
+
+func String2Stream(response string) (dataChan chan string, stopChan chan bool) {
+	dataChan = make(chan string)
+	stopChan = make(chan bool)
+	go func() {
+		for _, s := range response {
+			dataChan <- string(s)
+		}
+		stopChan <- true
+	}()
+	return
+}
+func Stream2String(dataChan chan string, stopChan chan bool) (response string) {
+	for {
+		select {
+		case s := <-dataChan:
+			response += s
+		case <-stopChan:
+			return
+		}
+	}
+}
 
 func GenerateResponse(messages []ChatRequestMessage) (replyStr string) {
 	replyStr = messages[len(messages)-1].Content
