@@ -30,10 +30,9 @@ func RunAgentOnPath(customHandler Handler, port int, path string) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
 		// generate response
 		response := customHandler(chatRequest.Messages)
-
+		// process response
 		if chatRequest.Stream {
 			SetEventStreamHeaders(c)
 			dataChan := make(chan string)
@@ -57,7 +56,6 @@ func RunAgentOnPath(customHandler Handler, port int, path string) {
 				}
 				stopChan <- true
 			}()
-
 			c.Stream(func(w io.Writer) bool {
 				select {
 				case data := <-dataChan:
@@ -79,7 +77,7 @@ func RunAgentOnPath(customHandler Handler, port int, path string) {
 						Index: 0,
 						Message: Message{
 							Role:    "assistant",
-							Content: "Non-stream reply not implemented!",
+							Content: response,
 						},
 						FinishReason: "length",
 					},
@@ -92,7 +90,6 @@ func RunAgentOnPath(customHandler Handler, port int, path string) {
 			})
 		}
 	})
-
 	log.Printf("Starting server on port %d", port)
 	log.Fatal(server.Run(":" + strconv.Itoa(port)))
 }
