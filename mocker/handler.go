@@ -17,12 +17,11 @@ const responseObject string = "chat.completion.chunk"
 
 var responseCompletionId string = "chatcmpl-7f8Qxn9XkoGsVcl0RVGltZpPeqMAG"
 
-func RunStreamAgentOnPath(customHandler StreamHandler, port int, path string) {
+func RegisterStreamAgentOnPath(customHandler StreamHandler, server *gin.Engine, path string) {
 	if os.Getenv("GIN_MODE") != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	stopReason := "stop"
-	server := gin.Default()
 	server.Use(CORS())
 	server.POST(path, func(c *gin.Context) {
 		var chatRequest ChatRequest
@@ -82,14 +81,26 @@ func RunStreamAgentOnPath(customHandler StreamHandler, port int, path string) {
 			})
 		}
 	})
+}
+
+func RegisterAgentOnPath(customHandler Handler, server *gin.Engine, path string) {
+	RegisterStreamAgentOnPath(func(messages []ChatRequestMessage) (dataChan chan string, stopChan chan bool) {
+		return String2Stream(customHandler(messages))
+	}, server, path)
+}
+
+func RunStreamAgentOnPath(customHandler StreamHandler, port int, path string) {
+	r := gin.Default()
+	RegisterStreamAgentOnPath(customHandler, r, path)
 	log.Printf("Starting server on port %d", port)
-	log.Fatal(server.Run(":" + strconv.Itoa(port)))
+	log.Fatal(r.Run(":" + strconv.Itoa(port)))
 }
 
 func RunAgentOnPath(customHandler Handler, port int, path string) {
-	RunStreamAgentOnPath(func(messages []ChatRequestMessage) (dataChan chan string, stopChan chan bool) {
-		return String2Stream(customHandler(messages))
-	}, port, path)
+	r := gin.Default()
+	RegisterAgentOnPath(customHandler, r, path)
+	log.Printf("Starting server on port %d", port)
+	log.Fatal(r.Run(":" + strconv.Itoa(port)))
 }
 
 func RunAgent(customHandler Handler, port int) {
