@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -17,14 +16,10 @@ const responseObject string = "chat.completion.chunk"
 
 var responseCompletionId string = "chatcmpl-7f8Qxn9XkoGsVcl0RVGltZpPeqMAG"
 
-func RegisterStreamAgentOnPath(customHandler StreamHandler, server *gin.Engine, path string) {
-	if os.Getenv("GIN_MODE") != "debug" {
-		gin.SetMode(gin.ReleaseMode)
-	}
-	stopReason := "stop"
-	server.Use(CORS())
-	server.POST(path, func(c *gin.Context) {
+func GenerateStreamAgent(customHandler StreamHandler) func(c *gin.Context) {
+	return func(c *gin.Context) {
 		var chatRequest ChatRequest
+		stopReason := "stop"
 		if err := c.ShouldBindJSON(&chatRequest); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -80,7 +75,11 @@ func RegisterStreamAgentOnPath(customHandler StreamHandler, server *gin.Engine, 
 				},
 			})
 		}
-	})
+	}
+}
+
+func RegisterStreamAgentOnPath(customHandler StreamHandler, server *gin.Engine, path string) {
+	server.POST(path, GenerateStreamAgent(customHandler))
 }
 
 func RegisterAgentOnPath(customHandler Handler, server *gin.Engine, path string) {
